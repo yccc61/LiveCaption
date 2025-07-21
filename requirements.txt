@@ -1,0 +1,29 @@
+# Core audio processing
+sounddevice>=0.4.6
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Fast transcription
+openai-whisper>=20231117
+torch>=2.0.0
+
+# Translation models - lightweight and natural
+transformers>=4.35.0
+sentencepiece>=0.1.99
+sacremoses>=0.0.53
+
+# UI components
+tkinter>=8.6
+Pillow>=10.0.0
+
+# Audio utilities
+pyaudio>=0.2.11
+pydub>=0.25.1
+
+# Threading and async
+asyncio>=3.4.3
+threading-extras>=0.1.0
+
+# Optional: For better Japanese-Chinese translation
+fugashi>=1.3.0
+unidic-lite>=1.0.8
