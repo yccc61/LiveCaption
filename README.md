@@ -1,32 +1,56 @@
 # LiveCaption - Japanese to Chinese Real-time Translation
 
-A low-latency live caption system that captures system audio, transcribes Japanese speech using Whisper, and displays natural Chinese translations in a transparent floating window.
+A low-latency live caption system that captures system audio and displays natural Chinese translations in a transparent floating window. Now supports **direct Japanese-to-Chinese transcription** for higher accuracy and lower latency!
 
 ## Features
 
 - **System Audio Capture**: Captures audio from any application (videos, games, streams, etc.)
-- **Fast Japanese Transcription**: Uses optimized Whisper models for low-latency speech-to-text
-- **Natural Translation**: Japanese to Chinese translation with casual/NSFW content support
-- **Floating Caption UI**: Transparent, draggable window with Japanese and Chinese text
-- **Low Latency**: Optimized for real-time performance (1-2 second delay typical)
+- **Direct Japanese-Chinese Transcription**: Uses specialized Whisper model for direct audio-to-Chinese conversion
+- **Floating Caption UI**: Semi-transparent, draggable window with smooth text updates
+- **Ultra-Low Latency**: Direct transcription eliminates translation step (0.5-1 second delay typical)
+- **High Accuracy**: Specialized model trained for Japanese→Chinese provides more localized translations
+- **Auto-hide**: Window automatically hides when no speech is detected
 
 ## Quick Start
 
-1. **Setup**:
-   ```bash
-   cd LiveCaption
-   python setup.py
-   ```
+### One-Command Setup (Including China):
+```bash
+cd LiveCaption
+python setup.py                     # Install dependencies
+python live_caption_direct.py       # Run application (auto-downloads from China-friendly mirrors)
+```
 
-2. **Run**:
-   ```bash
-   python live_caption.py
-   ```
+**That's it!** The application automatically:
+- ✅ Uses local models if available (instant startup)
+- ✅ Downloads from `hf-mirror.com` (optimized for China) if needed
+- ✅ Falls back to legacy mode if direct mode fails
+- ✅ Starts floating, draggable caption window
 
-3. **Test UI**:
-   ```bash
-   python live_caption.py --test-ui
-   ```
+### What You Get:
+- **Semi-transparent floating window** that you can drag anywhere
+- **Auto-hide**: disappears when no speech, appears with new captions
+- **Direct Japanese → Chinese transcription** (0.5-1s latency)
+- **Right-click menu**: adjust font size, transparency, hide/show
+
+### Manual Download (Optional):
+```bash
+python download_models.py whisper-ja-zh-base  # Pre-download model (~500MB)
+python live_caption_direct.py                 # Run application
+```
+
+## Two Modes Available
+
+### Direct Mode (NEW - Recommended)
+- **File**: `live_caption_direct.py`
+- **Model**: Uses `Itbanque/whisper-ja-zh-base` for direct Japanese audio → Chinese text
+- **Advantages**: Higher accuracy, lower latency, more localized translations
+- **Best for**: Most use cases, especially real-time applications
+
+### Legacy Mode
+- **File**: `live_caption.py` 
+- **Process**: Japanese audio → Japanese text → Chinese text (two-step)
+- **Advantages**: More customizable translation patterns
+- **Best for**: Custom translation requirements, debugging
 
 ## Requirements
 
@@ -37,7 +61,22 @@ A low-latency live caption system that captures system audio, transcribes Japane
 
 ## Usage
 
-### Basic Usage
+### Direct Mode Usage (Recommended)
+```bash
+# Run with default direct model
+python live_caption_direct.py
+
+# Use custom model (if available)
+python live_caption_direct.py --model "your/custom-ja-zh-model"
+
+# Adjust performance settings
+python live_caption_direct.py --chunk-duration 0.8 --font-size 16 --opacity 0.9
+
+# List audio devices
+python live_caption_direct.py --list-devices
+```
+
+### Legacy Mode Usage
 ```bash
 # Run with default settings
 python live_caption.py
@@ -53,6 +92,18 @@ python live_caption.py --font-size 16 --opacity 0.9
 ```
 
 ### Command Line Options
+
+#### Direct Mode (`live_caption_direct.py`)
+```
+--model MODEL                       Direct Japanese-Chinese model (default: Itbanque/whisper-ja-zh-base)
+--chunk-duration FLOAT             Audio chunk duration in seconds (default: 1.0)
+--font-size INT                     Caption font size (default: 14)
+--opacity FLOAT                     Window opacity 0.0-1.0 (default: 0.8)
+--list-devices                      List available audio devices
+--test-ui                          Test caption UI with sample text
+```
+
+#### Legacy Mode (`live_caption.py`)
 ```
 --model {tiny,base,small,medium}    Whisper model size (default: base)
 --chunk-duration FLOAT             Audio chunk duration in seconds (default: 1.0)
@@ -133,7 +184,52 @@ python live_caption.py --model small --chunk-duration 1.5
 - Install CUDA-enabled PyTorch for best performance
 - Reduces transcription time by 3-5x
 
+## Offline Setup (For China/Restricted Regions)
+
+Since model downloading can be challenging in certain regions, we provide several offline setup options:
+
+### Method 1: Auto Download with Mirrors
+```bash
+# Uses mirror sites including hf-mirror.com (popular in China)
+python download_models.py whisper-ja-zh-base
+```
+
+### Method 2: Manual Download
+1. **Download model files** from alternative sources:
+   - Use VPN to access https://huggingface.co/Itbanque/whisper-ja-zh-base
+   - Ask someone outside China to download for you
+   - Use alternative model hosting sites
+
+2. **Create directory structure**:
+   ```
+   models/whisper-ja-zh-base/
+   ├── config.json
+   ├── preprocessor_config.json
+   ├── tokenizer.json
+   ├── tokenizer_config.json
+   ├── vocab.json
+   ├── merges.txt
+   ├── pytorch_model.bin (or model.safetensors)
+   └── generation_config.json
+   ```
+
+3. **Place files** in the `models/whisper-ja-zh-base/` directory
+
+### Method 3: Package with Repository
+For repository maintainers who want to include models:
+1. Download model using `download_models.py`
+2. Commit the `models/` directory to your repository
+3. Users can clone and use immediately without downloads
+
+**Note**: Model files are ~500MB total, so this increases repository size significantly.
+
 ## Troubleshooting
+
+### Model Download Issues (China)
+1. Try the download script: `python download_models.py whisper-ja-zh-base`
+2. Use VPN if available
+3. Download manually and place in `models/` directory
+4. Use legacy mode as fallback: `python live_caption.py`
 
 ### No Audio Captured
 1. Check available devices: `python live_caption.py --list-devices`
@@ -159,6 +255,15 @@ python live_caption.py --model small --chunk-duration 1.5
 ## Technical Details
 
 ### Architecture
+
+#### Direct Mode (Recommended)
+```
+Audio Capture → Direct Japanese-Chinese Transcription → UI Display
+     ↓                        ↓                           ↓
+System Audio        Chinese Text (Direct)          Floating Window
+```
+
+#### Legacy Mode
 ```
 Audio Capture → Whisper Transcription → Translation → UI Display
      ↓                ↓                    ↓           ↓
@@ -167,10 +272,12 @@ System Audio    Japanese Text      Chinese Text   Floating Window
 
 ### Components
 - **audio_capture.py**: System audio capture with sounddevice
-- **transcription.py**: Whisper-based Japanese speech-to-text
-- **translation.py**: Natural Japanese-Chinese translation
-- **caption_ui.py**: Transparent floating window UI
-- **live_caption.py**: Main application orchestrator
+- **direct_transcription.py**: Direct Japanese audio to Chinese text using specialized Whisper model
+- **transcription.py**: Whisper-based Japanese speech-to-text (legacy)
+- **translation.py**: Natural Japanese-Chinese translation (legacy)
+- **caption_ui.py**: Semi-transparent, draggable floating window UI
+- **live_caption_direct.py**: Direct mode main application (recommended)
+- **live_caption.py**: Legacy mode main application
 
 ### Threading Model
 - Main thread: UI event loop
